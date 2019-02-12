@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './Today.css'
 import axios from 'axios'
+import Pusher from 'pusher-js'
 
 class Today extends Component {
     // Adds a class constructor that assigns the initial state values:
@@ -25,6 +26,41 @@ class Today extends Component {
             .catch(error => {
                 console.log(error)
             })
+        // establish a connection to Pusher
+            this.pusher = new Pusher('APP_KEY', {
+                cluster: 'YOUR_CLUSTER',
+                encrypted: true
+            });
+            // Subscribe to the 'coin-prices' channel
+            this.prices = this.pusher.subscribe('coin-prices');
+    }
+    componentDidMount () {
+        setInterval(() => {
+            axios.get('https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD')
+                .then(response => {
+                    this.sendPricePusher (response.data)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        }, 10000)
+        // We bind to the 'prices' event and use the data in it (price information) to update the state values, thus, realtime changes
+        this.prices.bind('prices', price => {
+           this.setState({ btcprice: price.prices.BTC.USD });
+           this.setState({ ethprice: price.prices.ETH.USD });
+           this.setState({ ltcprice: price.prices.LTC.USD });
+         }, this);
+     }
+    sendPricePusher (data) {
+       axios.post('/prices/new', {
+           prices: data
+       })
+         .then(response => {
+             console.log(response)
+         })
+         .catch(error => {
+             console.log(error)
+         })
     }
     // The render method contains the JSX code which will be compiled to HTML.
     render() {
