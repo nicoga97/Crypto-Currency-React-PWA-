@@ -15,26 +15,36 @@ class Today extends Component {
     }
     // This is called when an instance of a component is being created and inserted into the DOM.
     componentWillMount () {
+        // establish a connection to Pusher
+        this.pusher = new Pusher('50f340610481b40c6ef1', {
+            cluster: 'us2',
+            encrypted: true
+        });
+        // Subscribe to the 'coin-prices' channel
+        this.prices = this.pusher.subscribe('coin-prices');
         axios.get('https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD')
             .then(response => {
-                // We set the latest prices in the state to the prices gotten from Cryptocurrency.
                 this.setState({ btcprice: response.data.BTC.USD });
+                localStorage.setItem('BTC', response.data.BTC.USD);
+
                 this.setState({ ethprice: response.data.ETH.USD });
+                localStorage.setItem('ETH', response.data.ETH.USD);
+
                 this.setState({ ltcprice: response.data.LTC.USD });
+                localStorage.setItem('LTC', response.data.LTC.USD);
             })
-            // Catch any error here
             .catch(error => {
                 console.log(error)
             })
-        // establish a connection to Pusher
-            this.pusher = new Pusher('APP_KEY', {
-                cluster: 'YOUR_CLUSTER',
-                encrypted: true
-            });
-            // Subscribe to the 'coin-prices' channel
-            this.prices = this.pusher.subscribe('coin-prices');
+
+
     }
     componentDidMount () {
+        if (!navigator.onLine) {
+            this.setState({ btcprice: localStorage.getItem('BTC') });
+            this.setState({ ethprice: localStorage.getItem('ETH') });
+            this.setState({ ltcprice: localStorage.getItem('LTC') });
+        }
         setInterval(() => {
             axios.get('https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD')
                 .then(response => {
@@ -46,10 +56,11 @@ class Today extends Component {
         }, 10000)
         // We bind to the 'prices' event and use the data in it (price information) to update the state values, thus, realtime changes
         this.prices.bind('prices', price => {
-           this.setState({ btcprice: price.prices.BTC.USD });
-           this.setState({ ethprice: price.prices.ETH.USD });
-           this.setState({ ltcprice: price.prices.LTC.USD });
-         }, this);
+            this.setState({ btcprice: price.prices.BTC.USD });
+            this.setState({ ethprice: price.prices.ETH.USD });
+            this.setState({ ltcprice: price.prices.LTC.USD });
+        }, this);
+
      }
     sendPricePusher (data) {
        axios.post('/prices/new', {

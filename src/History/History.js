@@ -42,7 +42,7 @@ class History extends Component {
                     btc: btc.data.BTC.USD,
                     ltc: ltc.data.LTC.USD
                 }
-                // Set the state of todayprice to the content of the object f
+                localStorage.setItem('todayprice', JSON.stringify(f));
                 this.setState({ todayprice: f });
             }));
     }
@@ -60,6 +60,7 @@ class History extends Component {
                     ltc: ltc.data.LTC.USD
                 }
                 // Set the state of yesterdayprice to the content of the object f
+                localStorage.setItem('yesterdayprice', JSON.stringify(f));
                 this.setState({ yesterdayprice: f });
             }));
     }
@@ -77,6 +78,7 @@ class History extends Component {
                     ltc: ltc.data.LTC.USD
                 }
                 // Set the state of twodaysprice to the content of the object f
+                localStorage.setItem('twodaysprice', JSON.stringify(f));
                 this.setState({ twodaysprice: f });
             }));
     }
@@ -94,6 +96,7 @@ class History extends Component {
                     ltc: ltc.data.LTC.USD
                 }
                 // Set the state of threedaysprice to the content of the object f
+                localStorage.setItem('threedaysprice', JSON.stringify(f));
                 this.setState({ threedaysprice: f });
             }));
     }
@@ -111,11 +114,19 @@ class History extends Component {
                     ltc: ltc.data.LTC.USD
                 }
                 // Set the state of fourdaysprice to the content of the object f
+                localStorage.setItem('fourdaysprice', JSON.stringify(f));
                 this.setState({ fourdaysprice: f });
             }));
     }
     // This is called when an instance of a component is being created and inserted into the DOM.
     componentWillMount () {
+        if (!navigator.onLine) {
+            this.setState({ todayprice: JSON.parse(localStorage.getItem('todayprice')) });
+            this.setState({ yesterdayprice: JSON.parse(localStorage.getItem('yesterdayprice')) });
+            this.setState({ twodaysprice: JSON.parse(localStorage.getItem('twodaysprice')) });
+            this.setState({ threedaysprice: JSON.parse(localStorage.getItem('threedaysprice')) });
+            this.setState({ fourdaysprice: JSON.parse(localStorage.getItem('fourdaysprice')) });
+        }
         this.getTodayPrice();
         this.getYesterdayPrice();
         this.getTwoDaysPrice();
